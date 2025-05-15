@@ -11,108 +11,136 @@ class HomeScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Fullscreen background
+          // Background image
           const Image(image: AssetImage('assets/blue.png'), fit: BoxFit.cover),
 
-          // Semi-transparent overlay for readability
-          Container(color: Colors.black.withAlpha((0.2 * 255).toInt())),
+          // Dark overlay for contrast
+          Container(color: Colors.black.withAlpha((0.5 * 255).toInt())),
 
-          // Content
           SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                // AppBar replacement
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
-                  child: Center(
-                    child: Text(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    const Text(
                       "Flutify - Scan",
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Scanner image
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Image.asset(
-                    'assets/scanner.png',
-                    height: 300,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Tagline with subtle background box
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40.0,
-                    vertical: 16,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withAlpha((0.25 * 255).toInt()),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha((0.15 * 255).toInt()),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      "Effortless Scanning,\nPowered by Flutify.",
-                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 18,
-                        height: 1.5,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withAlpha((0.95 * 255).toInt()),
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Scanner Image with subtle shadow
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.3 * 255).toInt()),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/scanner.png',
+                          height: 320,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 32),
+                    const SizedBox(height: 40),
 
-                // Scan button
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CameraScreen(),
+                    // Card with tagline and button
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha((0.15 * 255).toInt()),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.2 * 255).toInt()),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.document_scanner),
-                  label: const Text("Scan Document"),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    backgroundColor: const Color(0xFFb2cbff),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 5,
-                  ),
-                ),
+                      child: Column(
+                        children: [
+                          // Tagline
+                          Text(
+                            "Effortless Scanning,\nPowered by Flutify.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(
+                                (0.9 * 255).toInt(),
+                              ),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              height: 1.4,
+                            ),
+                          ),
 
-                const Spacer(flex: 2),
-              ],
+                          const SizedBox(height: 32),
+
+                          // Scan Document Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(
+                                Icons.document_scanner,
+                                size: 28,
+                              ),
+                              label: const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                                child: Text(
+                                  "Scan Document",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFb2cbff),
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 7,
+                                shadowColor: Colors.black.withAlpha(
+                                  (0.25 * 255).toInt(),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CameraScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
