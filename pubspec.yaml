@@ -38,3 +38,8 @@ flutter:
     - assets/valknut.png
     - assets/blue.png
     - assets/scanner.png
+
+  fonts:
+    - family: Flutify
+      fonts:
+        - asset: assets/fonts/Flutify.otf
