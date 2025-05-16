@@ -1,8 +1,7 @@
 // ignore_for_file: avoid_print
-
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:permission_handler/permission_handler.dart';
 
 class PdfGenerator {
   static Future<String?> createPdfFromImage({required String imagePath}) async {
@@ -18,16 +17,13 @@ class PdfGenerator {
         ),
       );
 
-      // Ensure permission
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        return null;
-      }
+      // Request storage permission (you already do this)
 
-      // Create a user-visible directory in Downloads
-      final downloadsDir = Directory(
-        '/storage/emulated/0/Download/FlutifyScan',
-      );
+      // Get external storage directory
+      final extDir = await getExternalStorageDirectory();
+
+      // Construct path for Downloads/FlutifyScan inside your app's external directory
+      final downloadsDir = Directory('${extDir!.path}/FlutifyScan');
       if (!await downloadsDir.exists()) {
         await downloadsDir.create(recursive: true);
       }
