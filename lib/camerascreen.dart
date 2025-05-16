@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:flutifyscan/image_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -117,16 +118,41 @@ class _CameraScreenState extends State<CameraScreen> {
                 onPressed: () async {
                   try {
                     await _initializeControllerFuture;
+                    if (!mounted) return; // Check State.mounted
+
                     if (_controller != null) {
                       final image = await _controller!.takePicture();
+                      if (!mounted) return; // Check State.mounted
+
                       final savedPath = await _saveImageToAppDir(image);
-                      if (!context.mounted) return;
-                      Navigator.pop(context, savedPath);
+                      if (!mounted) return; // Check State.mounted
+
+                      // Check context.mounted before using context
+                      if (context.mounted) {
+                        final usePhoto = await Navigator.push<bool>(
+                          context, // Safe to use context here
+                          MaterialPageRoute(
+                            builder:
+                                (_) => ImagePreviewScreen(imagePath: savedPath),
+                          ),
+                        );
+                        if (!context.mounted) {
+                          return; // Check context.mounted after async
+                        }
+
+                        if (usePhoto == true) {
+                          Navigator.pop(
+                            context,
+                            savedPath,
+                          ); // Safe to use context here
+                        }
+                      }
                     }
                   } catch (e) {
                     debugPrint('Error taking or saving picture: $e');
                   }
                 },
+
                 style: ElevatedButton.styleFrom(
                   shape: const CircleBorder(),
                   backgroundColor: Colors.white,
