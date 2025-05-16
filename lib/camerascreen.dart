@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutifyscan/pdf_generator.dart';
+import 'pdf_utils.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -119,26 +120,24 @@ class _CameraScreenState extends State<CameraScreen> {
                 onPressed: () async {
                   try {
                     await _initializeControllerFuture;
-                    if (!mounted) return; // Check State.mounted
+                    if (!mounted) return;
 
                     if (_controller != null) {
                       final image = await _controller!.takePicture();
-                      if (!mounted) return; // Check State.mounted
+                      if (!mounted) return;
 
                       final savedPath = await _saveImageToAppDir(image);
-                      if (!mounted) return; // Check State.mounted
+                      if (!mounted) return;
 
                       if (context.mounted) {
                         final usePhoto = await Navigator.push<bool>(
-                          context, // Safe to use context here
+                          context,
                           MaterialPageRoute(
                             builder:
                                 (_) => ImagePreviewScreen(imagePath: savedPath),
                           ),
                         );
-                        if (!context.mounted) {
-                          return; // Check context.mounted after async
-                        }
+                        if (!context.mounted) return;
 
                         if (usePhoto == true) {
                           final pdfPath = await PdfGenerator.createPdfFromImage(
@@ -147,11 +146,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
                           if (context.mounted) {
                             if (pdfPath != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('PDF saved at $pdfPath'),
-                                ),
-                              );
+                              PdfUtils.showPdfCreatedSnackbar(context, pdfPath);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
