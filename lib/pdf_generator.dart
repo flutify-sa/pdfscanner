@@ -1,35 +1,46 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:permission_handler/permission_handler.dart';
 
 class PdfGenerator {
-  /// Converts a single image file at [imagePath] into a PDF,
-  /// saves it in app documents directory with the given [fileName],
-  /// and returns the saved PDF file path.
-  static Future<String> createPdfFromImage({
-    required String imagePath,
-    String? fileName,
-  }) async {
-    final pdf = pw.Document();
+  static Future<String?> createPdfFromImage({required String imagePath}) async {
+    try {
+      final pdf = pw.Document();
+      final image = File(imagePath);
+      final imageBytes = await image.readAsBytes();
+      final pdfImage = pw.MemoryImage(imageBytes);
 
-    final image = pw.MemoryImage(File(imagePath).readAsBytesSync());
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) => pw.Center(child: pw.Image(pdfImage)),
+        ),
+      );
 
-    pdf.addPage(
-      pw.Page(
-        build: (context) {
-          return pw.Center(child: pw.Image(image));
-        },
-      ),
-    );
+      // Ensure permission
+      final status = await Permission.storage.request();
+      if (!status.isGranted) {
+        return null;
+      }
 
-    final dir = await getApplicationDocumentsDirectory();
-    final pdfFileName =
-        fileName ?? 'document_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    final pdfPath = '${dir.path}/$pdfFileName';
+      // Create a user-visible directory in Downloads
+      final downloadsDir = Directory(
+        '/storage/emulated/0/Download/FlutifyScan',
+      );
+      if (!await downloadsDir.exists()) {
+        await downloadsDir.create(recursive: true);
+      }
 
-    final file = File(pdfPath);
-    await file.writeAsBytes(await pdf.save());
+      final fileName = 'scan_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filePath = '${downloadsDir.path}/$fileName';
+      final file = File(filePath);
+      await file.writeAsBytes(await pdf.save());
 
-    return pdfPath;
+      return filePath;
+    } catch (e) {
+      print('Error generating PDF: $e');
+      return null;
+    }
   }
 }

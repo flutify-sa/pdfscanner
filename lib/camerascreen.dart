@@ -141,15 +141,26 @@ class _CameraScreenState extends State<CameraScreen> {
                         }
 
                         if (usePhoto == true) {
-                          await PdfGenerator.createPdfFromImage(
+                          final pdfPath = await PdfGenerator.createPdfFromImage(
                             imagePath: savedPath,
                           );
+
                           if (context.mounted) {
-                            // Add this check
-                            Navigator.pop(
-                              context,
-                              savedPath,
-                            ); // Safe to use context here
+                            if (pdfPath != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('PDF saved at $pdfPath'),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Failed to save PDF'),
+                                ),
+                              );
+                            }
+
+                            Navigator.pop(context, savedPath);
                           }
                         }
                       }
