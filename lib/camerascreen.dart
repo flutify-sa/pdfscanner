@@ -3,6 +3,7 @@ import 'package:flutifyscan/image_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:flutifyscan/pdf_generator.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -127,7 +128,6 @@ class _CameraScreenState extends State<CameraScreen> {
                       final savedPath = await _saveImageToAppDir(image);
                       if (!mounted) return; // Check State.mounted
 
-                      // Check context.mounted before using context
                       if (context.mounted) {
                         final usePhoto = await Navigator.push<bool>(
                           context, // Safe to use context here
@@ -141,10 +141,16 @@ class _CameraScreenState extends State<CameraScreen> {
                         }
 
                         if (usePhoto == true) {
-                          Navigator.pop(
-                            context,
-                            savedPath,
-                          ); // Safe to use context here
+                          await PdfGenerator.createPdfFromImage(
+                            imagePath: savedPath,
+                          );
+                          if (context.mounted) {
+                            // Add this check
+                            Navigator.pop(
+                              context,
+                              savedPath,
+                            ); // Safe to use context here
+                          }
                         }
                       }
                     }
@@ -152,7 +158,6 @@ class _CameraScreenState extends State<CameraScreen> {
                     debugPrint('Error taking or saving picture: $e');
                   }
                 },
-
                 style: ElevatedButton.styleFrom(
                   shape: const CircleBorder(),
                   backgroundColor: Colors.white,
