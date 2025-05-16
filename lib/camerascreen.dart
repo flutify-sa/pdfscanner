@@ -1,5 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -30,10 +32,24 @@ class _CameraScreenState extends State<CameraScreen> {
         ResolutionPreset.high,
         enableAudio: false,
       );
-      _initializeControllerFuture = _controller!.initialize();
-      if (mounted) setState(() {});
+      _initializeControllerFuture = _controller!.initialize().then((_) {
+        if (mounted) setState(() {});
+      });
     } catch (e) {
       debugPrint('Error initializing camera: $e');
+    }
+  }
+
+  Future<String> _saveImageToAppDir(XFile image) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedPath = '${dir.path}/$fileName';
+      await File(image.path).copy(savedPath);
+      return savedPath;
+    } catch (e) {
+      debugPrint('Error saving image: $e');
+      return image.path; // fallback
     }
   }
 
@@ -45,75 +61,88 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/blue.png'),
-          fit: BoxFit.cover,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Flutify - Camera',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white,
+          ),
         ),
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text(
-            'Flutify - Camera',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF0052D4),
+                  Color(0xFF4364F7),
+                  Color(0xFF6FB1FC),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
           ),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          elevation: 0,
-        ),
-        body:
-            _controller == null
-                ? const Center(
+          FutureBuilder<void>(
+            future: _initializeControllerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  _controller != null) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: CameraPreview(_controller!),
+                );
+              } else {
+                return const Center(
                   child: CircularProgressIndicator(color: Colors.white),
-                )
-                : FutureBuilder<void>(
-                  future: _initializeControllerFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      return Stack(
-                        children: [
-                          CameraPreview(_controller!),
-                          Positioned(
-                            bottom: 30,
-                            left: 0,
-                            right: 0,
-                            child: Center(
-                              child: FloatingActionButton(
-                                backgroundColor: Colors.white,
-                                onPressed: () async {
-                                  try {
-                                    await _initializeControllerFuture;
-                                    final image =
-                                        await _controller!.takePicture();
-
-                                    // Check if the widget is still mounted before using context
-                                    if (!context.mounted) return;
-
-                                    Navigator.pop(context, image.path);
-                                  } catch (e) {
-                                    debugPrint('Error taking picture: $e');
-                                  }
-                                },
-
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
+                );
+              }
+            },
+          ),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await _initializeControllerFuture;
+                    if (_controller != null) {
+                      final image = await _controller!.takePicture();
+                      final savedPath = await _saveImageToAppDir(image);
+                      if (!context.mounted) return;
+                      Navigator.pop(context, savedPath);
                     }
-                  },
+                  } catch (e) {
+                    debugPrint('Error taking or saving picture: $e');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: const CircleBorder(),
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.all(20),
+                  elevation: 8,
+                  shadowColor: Colors.black54,
                 ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: 32,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
